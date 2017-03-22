@@ -409,6 +409,7 @@ Ext.onReady(function(){
                     {if $linked_version_id != 0} 
                         {$importance=$tcase.importance.$linked_version_id}
                         {$wkf=$tcase.status.$linked_version_id}
+						{$showAlertImageStatus = $statusElement}
                     {else}
                       {* 
                         if no test case version is linked -> 
