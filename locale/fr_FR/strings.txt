@@ -4022,6 +4022,7 @@ $TLS_mail_subject_req_new_version = 'Nouvelle version d’exigence [%docid%-%tit
 
 
 $TLS_hint_add_testcases_to_testplan_status = 'Les cas de test en dernière version ayant l’un de ces états (%s) ne seront pas affichés à l’écran';
+$TLS_alert_add_testcases_to_testplan_status = "Le cas de test dans cette version peut être incomplet.";
 
 $TLS_copy_done = "Copie terminée";
 $TLS_copy_tester_assignments_title = "Copie d’affectation de testeurs";

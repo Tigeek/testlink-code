@@ -12,7 +12,7 @@ generate a list of TC for adding to Test Plan
              check_uncheck_all_checkboxes,removal_tc,show_tcase_spec,
              tester_assignment_on_add,adding_tc,check_uncheck_all_tc,for,
              build_to_assign_on_add,importance,execution,design,execution_history,
-             warning_remove_executed,th_status'}
+             warning_remove_executed,th_status, alert_add_testcases_to_testplan_status'}
 
 {* prefix for checkbox named , ADD and ReMove *}   
 {$add_cb="achecked_tc"} 
@@ -27,6 +27,7 @@ generate a list of TC for adding to Test Plan
 <!--
 js_warning_remove_executed = '{$labels.warning_remove_executed}';
 js_remove_executed_counter = 0;
+var imageFolder = "{$smarty.const.TL_THEME_IMG_DIR}";
 
 function updateRemoveExecCounter(oid)
 {
@@ -73,6 +74,7 @@ function showTT(e)
 
 js_tcase_importance = new Array();
 js_tcase_wkfstatus = new Array();
+js_option_status_alert = new Array();
 
 attrDomain = new Object();
 attrDomain.importance = new Array();
@@ -86,6 +88,9 @@ attrDomain.wkfstatus = new Array();
   attrDomain.wkfstatus[{$key}] = "{$item}";
 {/foreach}
 
+{foreach key=key item=item from=$tlCfg->tplanDesign->showAlertTestCaseWithStatusIn}
+	js_option_status_alert[{$key}] = "{$item}";
+{/foreach}
 
 // Update test case attributes when selecting a different test case version
 // - workflow status
@@ -95,6 +100,7 @@ function updTCAttr(tcID,tcvID)
 {
   var impOID = "importance_"+tcID;
   var wkfOID = "wkfstatus_"+tcID;
+  var idAlertImgStatus = "imgStatus_" + tcID;
   var val;
   var poid;
 
@@ -104,7 +110,40 @@ function updTCAttr(tcID,tcvID)
 
   val = js_tcase_wkfstatus[tcID][tcvID];
   poid = document.getElementById(wkfOID);
-  poid.firstChild.nodeValue = attrDomain.wkfstatus[val];
+  poid.firstChild.nodeValue = attrDomain.wkfstatus[val] + " ";
+  
+  
+  	{if $tlCfg->tplanDesign->disabledChecboxAuthorized}
+		//enable input
+		var classAddInput = "achecked_tc" + tcID; 
+		var addInputFields = document.getElementsByClassName(classAddInput);
+		for(var i =0; i < addInputFields.length; i++){
+			addInputFields[i].disabled = false;
+		}
+	{/if}
+  
+	// remove old image
+	var imgElement = document.getElementById(idAlertImgStatus);
+  	if(imgElement){
+		imgElement.remove();
+	}
+	
+  	// create alert
+	for(var index in js_option_status_alert){
+		if(val == js_option_status_alert[index]){
+			var img = document.createElement("img");
+			img.id = idAlertImgStatus;
+			img.title = "{$labels.alert_add_testcases_to_testplan_status}";
+			img.src = imageFolder + "error_triangle.png";
+			poid.appendChild(img);
+			{if $tlCfg->tplanDesign->disabledChecboxAuthorized}
+				//disabled input
+				for(var i =0; i < addInputFields.length; i++){
+					addInputFields[i].disabled = true;
+				}
+			{/if}
+		}
+	}
 }
 
 Ext.onReady(function(){ 
@@ -285,7 +324,15 @@ Ext.onReady(function(){
                       {$drawPlatformChecks=1}
                     {/if}
                   {/if}
-     				  
+				  
+				  {* get TCID status value *}
+				  
+				  {foreach name="oneLoop" from=$tcase.status key=key item=item}
+					{if $smarty.foreach.oneLoop.first}
+						{$statusElement=$key}
+					{/if}
+				  {/foreach}
+				  
      				      <tr{if $linked_version_id != 0 && $drawPlatformChecks == 0} style="{$smarty.const.TL_STYLE_FOR_ADDED_TC}"{/if}>
       			    	  <td width="20">
                     {* ------------------------------------------------------- *} 
@@ -295,7 +342,11 @@ Ext.onReady(function(){
   	      				        {if $is_active == 0 || $linked_version_id != 0}
   	      				           &nbsp;&nbsp;
   	      				        {else}
-  	      				           <input type="checkbox" name="{$add_cb}[{$tcID}][0]" id="{$add_cb}{$tcID}[0]" value="{$tcID}" /> 
+  	      				           {if $tcase.alertStatus.$statusElement && $tlCfg->tplanDesign->disabledChecboxAuthorized}
+										<input type="checkbox" name="{$add_cb}[{$tcID}][0]" id="{$add_cb}{$tcID}[0]" class="{$add_cb}{$tcID}" value="{$tcID}" disabled /> 
+									{else}
+										<input type="checkbox" name="{$add_cb}[{$tcID}][0]" id="{$add_cb}{$tcID}[0]" class="{$add_cb}{$tcID}" value="{$tcID}" /> 
+									{/if}
   	      				        {/if}
   	      				        <input type="hidden" name="a_tcid[{$tcID}]" value="{$tcID}" />
       				        {else}
@@ -373,17 +424,16 @@ Ext.onReady(function(){
                       {/foreach}
                       {$importance=$tcase.importance.$firstElement}
 
-                      {foreach name="oneLoop" from=$tcase.status 
-                               key=key item=item}
-                        {if $smarty.foreach.oneLoop.first}
-                          {$firstElement=$key}
-                        {/if}
-                      {/foreach}
-                      {$wkf=$tcase.status.$firstElement}
+                      {$wkf=$tcase.status.$statusElement}
+					  {$showAlertImageStatus = $statusElement}
                     {/if}
 
                     <td id="wkfstatus_{$tcID}" style="width:15%">
                       {$gsmarty_option_wkfstatus.$wkf}
+							{if $tcase.alertStatus.$showAlertImageStatus}
+								<img id="imgStatus_{$tcID}" class="clickable" src="{$smarty.const.TL_THEME_IMG_DIR}/error_triangle.png"
+									 title="{$labels.alert_add_testcases_to_testplan_status}" />
+							{/if}
                     </td>
 
       			        <td id="importance_{$tcID}" style="width:7%">
@@ -461,17 +511,21 @@ Ext.onReady(function(){
                 {foreach from=$gui->platforms item=platform}
                   <tr {if isset($tcase.feature_id[$platform.id])}	
                       style="{$smarty.const.TL_STYLE_FOR_ADDED_TC}" {/if} >
-                  	<td>
-      				    {if $gui->full_control}
-  	      		        {if $is_active == 0 || isset($tcase.feature_id[$platform.id])}
-  	      		      	  &nbsp;&nbsp;
-  	      		        {else}
-  	      		      	  <input type="checkbox"  name="{$add_cb}[{$tcID}][{$platform.id}]" id="{$add_cb}{$tcID}" value="{$tcID}" /> 
-  						         {/if}
-  	      		        <input type="hidden" name="a_tcid[{$tcID}][{$platform.id}]" value="{$tcID}" />
-  					         {else}
-  						         &nbsp;&nbsp;
-      				       {/if}
+						<td>
+							{if $gui->full_control}
+								{if $is_active == 0 || isset($tcase.feature_id[$platform.id])}
+								  &nbsp;&nbsp;
+								{else}
+									{if $tcase.alertStatus.$statusElement && $tlCfg->tplanDesign->disabledChecboxAuthorized}
+										<input type="checkbox"  name="{$add_cb}[{$tcID}][{$platform.id}]" id="{$add_cb}{$tcID}" value="{$tcID}" class="{$add_cb}{$tcID}" disabled />
+									{else}
+										<input type="checkbox"  name="{$add_cb}[{$tcID}][{$platform.id}]" id="{$add_cb}{$tcID}" value="{$tcID}" class="{$add_cb}{$tcID}" />
+									{/if} 
+								{/if}
+								<input type="hidden" name="a_tcid[{$tcID}][{$platform.id}]" value="{$tcID}" />
+							{else}
+								&nbsp;&nbsp;
+							{/if}
       			        </td>
       			        <td>{$platform.name|escape}</td>
   				          <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>

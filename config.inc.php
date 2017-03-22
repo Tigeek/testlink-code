@@ -1518,6 +1518,13 @@ $tlCfg->tree_filter_cfg->requirements->automatic_tree_refresh = ENABLED;
 /* [Assign test cases to test plan] */
 $tlCfg->tplanDesign->hideTestCaseWithStatusIn = array($tlCfg->testCaseStatus['obsolete'] => 'obsolete',
                             $tlCfg->testCaseStatus['future'] => 'future' );
+							
+/* [Show alert test cases to test plan] */
+$tlCfg->tplanDesign->showAlertTestCaseWithStatusIn = array($tlCfg->testCaseStatus['readyForReview'] => 2,
+                            $tlCfg->testCaseStatus['draft'] => 1 );
+
+// Authorized disabled add checkbox in test plan
+$tlCfg->tplanDesign->disabledChecboxAuthorized = false;
 
 // ----------------------------------------------------------------------------
 /* [MISC FUNCTIONALITY] */

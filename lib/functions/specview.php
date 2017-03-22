@@ -1099,6 +1099,7 @@ function addLinkedVersionsInfo($testCaseVersionSet,$a_tsuite_idx,&$out,&$linked_
   $result = array('spec_view'=>array(), 'num_tc' => 0, 'has_linked_items' => 0);
   $pivot_id=-1;
   $firstElemIDX = key($out);
+  $s2h = config_get('tplanDesign')->showAlertTestCaseWithStatusIn;
 
   foreach($testCaseVersionSet as $the_k => $testCase)
   {
@@ -1137,7 +1138,15 @@ function addLinkedVersionsInfo($testCaseVersionSet,$a_tsuite_idx,&$out,&$linked_
       $outRef['tcversions_execution_type'][$testCase['id']] = $testCase['execution_type'];
       $outRef['importance'][$testCase['id']] = $testCase['importance'];
       $outRef['status'][$testCase['id']] = $testCase['status'];
-      
+      if( !is_null($s2h) )
+      {
+		  if(in_array($testCase['status'], $s2h)){
+			$outRef['alertStatus'][$testCase['id']] = true;
+		  } else {
+			$outRef['alertStatus'][$testCase['id']] = false;
+		  }
+	  }
+
       if (!isset($outRef['tcversions_qty']))  
       {
         $outRef['tcversions_qty']=0;
